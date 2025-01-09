@@ -8,7 +8,7 @@ export class Score {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;
 
-  @Prop({ required: true, select: false })
+  @Prop({ required: true })
   game: string;
 
   @Prop({ required: true, default: 0 })
