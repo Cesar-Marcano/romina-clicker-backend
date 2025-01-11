@@ -17,11 +17,12 @@ export class ScoreService {
     return this.scoreModel.create({ user: userId, game, score });
   }
 
-  async getScores(userId: string, game: string): Promise<ScoreDocument[]> {
-    return this.scoreModel
-      .find({ user: userId, game })
-      .sort({ createdAt: -1 })
-      .exec();
+  async getScores(userId: string, game?: string): Promise<ScoreDocument[]> {
+    const filters: any = { user: userId };
+
+    if (game) filters.game = game;
+
+    return this.scoreModel.find(filters).sort({ createdAt: -1 }).exec();
   }
 
   async getTopScores(
@@ -37,7 +38,7 @@ export class ScoreService {
 
     const validatedPage = Math.max(page, 1);
     const validatedLimit = Math.max(limit, 1);
-    
+
     return await this.scoreModel
       .find(filter)
       .sort({ score: -1 })
@@ -48,5 +49,12 @@ export class ScoreService {
 
   async getScoreById(scoreId: string): Promise<ScoreDocument> {
     return this.scoreModel.findById(scoreId).exec();
+  }
+
+  async getUserMaxScoreRecord(userId: string, game: string) {
+    return this.scoreModel
+      .findOne({ user: userId, game })
+      .sort({ score: -1 })
+      .exec();
   }
 }
