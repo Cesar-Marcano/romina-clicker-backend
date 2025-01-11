@@ -6,48 +6,64 @@ import {
   Post,
   Request,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ScoreService } from './score.service';
 import { AuthGuard } from 'src/auth/auth.guard';
-import {
-  AddScoreDto,
-  GetTopScoresDto,
-  GetUserScoresDto,
-} from './dto/score.dto';
+import { AddScoreDto } from './dto/score.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('score')
 export class ScoreController {
   constructor(private scoreService: ScoreService) {}
 
   @UseGuards(AuthGuard)
-  @Post('add-score')
+  @Post('/')
   addScore(@Request() req, @Body() body: AddScoreDto) {
     return this.scoreService.addScore(req.user.sub, body.game, body.score);
   }
 
   @UseGuards(AuthGuard)
-  @Get('get-user-scores')
-  getUserScores(@Request() req, @Body() body: GetUserScoresDto) {
-    return this.scoreService.getScores(req.user.sub, body.game);
+  @Get('current-user/:game')
+  getUserScores(@Request() req, @Param('game') game: string) {
+    return this.scoreService.getScores(req.user.sub, game);
   }
 
-  @Get('get-top-scores')
-  getTopScores(@Body() body: GetTopScoresDto) {
+  @Get('global/top/:game')
+  getTopScores(
+    @Param('game') game: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 1,
+  ) {
     return this.scoreService.getTopScores(
-      body.game,
-      body.page,
-      body.limit,
-      body.userId,
+      game,
+      page,
+      limit,
     );
   }
 
-  @Get('get-score/:id')
+  @Get(':userId/top/:game')
+  getTopPlayerScores(
+    @Param('game') game: string,
+    @Param('userId') userId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 1,
+  ) {
+    return this.scoreService.getTopScores(
+      game,
+      page,
+      limit,
+      userId,
+    );
+  }
+
+  @Get(':id')
   getScore(@Param('id') id: string) {
     return this.scoreService.getScoreById(id);
   }
 
-  @Get('score-record/:game/:id')
-  getUserScoreRecord(@Param('game') game: string, @Param('id') id: string) {
-    return this.scoreService.getUserMaxScoreRecord(id, game);
+  @Get('/highest/:userId/:game/')
+  getUserScoreRecord(@Param('game') game: string, @Param('userId') userId: string) {
+    return this.scoreService.getUserMaxScoreRecord(userId, game);
   }
 }
